@@ -11,7 +11,7 @@ export interface Violation {
   timestamp: any;
   brandName: string;
   pirateUrl: string;
-  status: 'Pending' | 'Takedown Sent' | 'Resolved' | 'Escalated';
+  status: 'Pending' | 'Takedown Sent' | 'Resolved' | 'Escalated' | 'Completed';
   evidenceImage?: string;
   source?: string;
   redirectPath?: string[];
@@ -23,6 +23,7 @@ const statusStyles = {
   'Takedown Sent': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
   'Resolved': 'bg-green-500/10 text-green-500 border-green-500/20',
   'Escalated': 'bg-red-500/10 text-red-500 border-red-500/20',
+  'Completed': 'bg-green-500/10 text-green-500 border-green-500/20',
 };
 
 const statusIcons = {
@@ -30,6 +31,7 @@ const statusIcons = {
   'Takedown Sent': <ShieldAlert className="w-4 h-4 mr-1.5" />,
   'Resolved': <CheckCircle className="w-4 h-4 mr-1.5" />,
   'Escalated': <ShieldAlert className="w-4 h-4 mr-1.5" />,
+  'Completed': <CheckCircle className="w-4 h-4 mr-1.5" />,
 };
 
 export const ViolationsTable = ({ data }: { data: Violation[] }) => {

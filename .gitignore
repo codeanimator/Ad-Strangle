@@ -30,17 +30,26 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Secrets
+.env
+.env.local
+*.json
+!package.json
+!tsconfig.json
 
-# vercel
-.vercel
+# Firebase/GCP Service Accounts
+service-account.json
+credentials.json
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# System/Build
+node_modules
+.next
+out
+build
+dist
+.DS_Store
 
-# local evidence & assets
+# Forensic Evidence
 public/screenshots/*.png
 public/screenshots/*.jpg
 evidence.json

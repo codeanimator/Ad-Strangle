@@ -30,7 +30,7 @@ export const generateForensicReport = async (violation: ViolationReportData) => 
   doc.setDrawColor(0, 180, 216); 
   doc.line(14, 32, 196, 32);
 
-  // Forensic Report Title (Professionalized)
+  // Forensic Report Title
   doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
   doc.setFont('helvetica', 'bold');
@@ -62,6 +62,33 @@ export const generateForensicReport = async (violation: ViolationReportData) => 
 
   let currentY = (doc as any).lastAutoTable.finalY + 15;
 
+  // Helper to convert Firebase Token URLs to Base64
+  const getBase64FromUrl = async (url: string): Promise<string | null> => {
+    if (!url) return null;
+    try {
+      console.log(`[PDF-GEN] Attempting to resolve cloud asset: ${url}`);
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Accept': 'image/png,image/jpeg,image/*',
+        },
+      });
+
+      if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
+      
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve(null);
+      });
+    } catch (e) {
+      console.error(`[PDF-GEN] ❌ Resolution failed for ${url}:`, e);
+      return null;
+    }
+  };
+
   // Forensic Visual Evidence Mapping
   const addForensicImage = async (imgUrl: string | undefined, label: string, yPos: number): Promise<number> => {
     if (!imgUrl) return yPos;
@@ -77,11 +104,14 @@ export const generateForensicReport = async (violation: ViolationReportData) => 
     doc.text(label, 14, yPos);
     
     try {
+      const base64 = await getBase64FromUrl(imgUrl);
+      if (!base64) throw new Error("Base64 resolution failed");
+
       const img = new Image();
-      img.src = imgUrl;
-      await new Promise((resolve) => {
+      img.src = base64;
+      await new Promise((resolve, reject) => {
         img.onload = resolve;
-        img.onerror = resolve;
+        img.onerror = reject;
       });
 
       const pageWidth = doc.internal.pageSize.getWidth();
@@ -95,12 +125,13 @@ export const generateForensicReport = async (violation: ViolationReportData) => 
     } catch (e) {
       doc.setFontSize(10);
       doc.setTextColor(150, 0, 0);
-      doc.text('[FORENSIC CAPTURE ERROR: ASSET NOT RESOLVED]', 14, yPos + 10);
+      doc.setFont('helvetica', 'normal');
+      doc.text('[FORENSIC CAPTURE ERROR: CLOUD ASSET UNRESOLVED OR ACCESS DENIED]', 14, yPos + 10);
       return yPos + 20;
     }
   };
 
-  // Professional Phase Mapping
+  // Phase Mapping
   currentY = await addForensicImage(violation.screenshot_source, 'Phase 1: Asset Ingestion (Origin)', currentY);
   currentY = await addForensicImage(violation.screenshot_tracker, 'Phase 2: Intermediary Hijack (Middleman)', currentY);
   currentY = await addForensicImage(violation.screenshot_destination, 'Phase 3: Brand Exploitation (Destination)', currentY);
